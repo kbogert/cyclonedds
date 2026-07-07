@@ -24,7 +24,7 @@ pub fn build(b: *std.Build) void {
         lib.link_data_sections = true;
     }
 
-    lib.linkLibC();
+    lib.root_module.link_libc = true;
 
     // These config headers are taken from the ROS Jazzy install wherever possible
     const features = b.addConfigHeader(
@@ -44,7 +44,7 @@ pub fn build(b: *std.Build) void {
             .DDS_HAS_SHM = 0, // TODO this is on in ROS but we don't build iceoryx yet.
         },
     );
-    lib.addConfigHeader(features);
+    lib.root_module.addConfigHeader(features);
     lib.installConfigHeader(features);
 
     const version = b.addConfigHeader(
@@ -63,7 +63,7 @@ pub fn build(b: *std.Build) void {
             .CMAKE_SYSTEM_NAME = "Linux",
         },
     );
-    lib.addConfigHeader(version);
+    lib.root_module.addConfigHeader(version);
     lib.installConfigHeader(version);
 
     const config = b.addConfigHeader(
@@ -85,61 +85,61 @@ pub fn build(b: *std.Build) void {
             .DDSRT_HAVE_INET_PTON = 1,
         },
     );
-    lib.addConfigHeader(config);
+    lib.root_module.addConfigHeader(config);
     lib.installConfigHeader(config);
 
     // For export.h, taken from the ROS Jazzy install
-    lib.addIncludePath(b.path("include"));
+    lib.root_module.addIncludePath(b.path("include"));
     lib.installHeader(b.path("include/dds/export.h"), "dds/export.h");
 
-    lib.addIncludePath(upstream.path("src/ddsrt/include"));
+    lib.root_module.addIncludePath(upstream.path("src/ddsrt/include"));
     lib.installHeadersDirectory(upstream.path("src/ddsrt/include"), "", .{});
-    lib.addIncludePath(upstream.path("src/ddsrt/src")); // For internal stuff
-    lib.addCSourceFiles(.{
+    lib.root_module.addIncludePath(upstream.path("src/ddsrt/src")); // For internal stuff
+    lib.root_module.addCSourceFiles(.{
         .root = upstream.path(""),
         .files = &ddsrt_sources_common,
     });
 
     // TODO finish windows support, currently this doesn't work.
     if (target.result.os.tag == .windows) {
-        lib.addCSourceFiles(.{
+        lib.root_module.addCSourceFiles(.{
             .root = upstream.path(""),
             .files = &ddsrt_sources_windows,
         });
     } else {
-        lib.addCSourceFiles(.{
+        lib.root_module.addCSourceFiles(.{
             .root = upstream.path(""),
             .files = &ddsrt_sources_linux,
         });
     } // TODO MacOS support, freertos support?
 
-    lib.addIncludePath(upstream.path("src/core/ddsc/include"));
+    lib.root_module.addIncludePath(upstream.path("src/core/ddsc/include"));
     lib.installHeadersDirectory(upstream.path("src/core/ddsc/include"), "", .{});
-    lib.addIncludePath(upstream.path("src/core/ddsc/src")); // For internal stuff
-    lib.addCSourceFiles(.{
+    lib.root_module.addIncludePath(upstream.path("src/core/ddsc/src")); // For internal stuff
+    lib.root_module.addCSourceFiles(.{
         .root = upstream.path(""),
         .files = &ddsc_sources,
     });
 
-    lib.addIncludePath(upstream.path("src/core/ddsi/include"));
+    lib.root_module.addIncludePath(upstream.path("src/core/ddsi/include"));
     lib.installHeadersDirectory(upstream.path("src/core/ddsi/include"), "", .{});
-    lib.addIncludePath(upstream.path("src/core/ddsi/src")); // for internal stuff
-    lib.addCSourceFiles(.{
+    lib.root_module.addIncludePath(upstream.path("src/core/ddsi/src")); // for internal stuff
+    lib.root_module.addCSourceFiles(.{
         .root = upstream.path(""),
         .files = &ddsi_sources,
     });
 
     // For cyclonedds 0.11
-    // lib.addIncludePath(upstream.path("cyclonedds/src/core/cdr/include"));
-    // lib.addCSourceFiles(.{
+    // lib.root_module.addIncludePath(upstream.path("cyclonedds/src/core/cdr/include"));
+    // lib.root_module.addCSourceFiles(.{
     //     .files = &cyclonedds_cdr_sources,
     // });
 
-    lib.addIncludePath(upstream.path("src/security/core/include"));
+    lib.root_module.addIncludePath(upstream.path("src/security/core/include"));
     lib.installHeadersDirectory(upstream.path("src/security/core/include"), "", .{});
-    lib.addIncludePath(upstream.path("src/security/api/include"));
+    lib.root_module.addIncludePath(upstream.path("src/security/api/include"));
     lib.installHeadersDirectory(upstream.path("src/security/api/include"), "", .{});
-    lib.addCSourceFiles(.{
+    lib.root_module.addCSourceFiles(.{
         .root = upstream.path(""),
         .files = &cyclonedds_security_sources,
     });
